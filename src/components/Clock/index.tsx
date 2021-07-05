@@ -1,11 +1,13 @@
-import React from 'react'
 import styled from '@emotion/styled'
 
-import colors from 'styles/colors'
-
-const Wrapper = styled.div<{}>`
-  color: ${colors.white};
+const Wrapper = styled.div`
+  font-family: 'Roboto Mono', monospace;
+  font-size: 4rem;
 `
+
+function formatDoubleDigits(digits: number) {
+  return digits < 10 ? `0${digits}` : digits
+}
 
 type Props = {
   minutes: number
@@ -13,15 +15,10 @@ type Props = {
   className?: string
 }
 
-function formatDigits(digits: number) {
-  return digits < 10 ? `0${digits}` : digits
-}
-
-function Clock(props: Props) {
-  const { minutes, seconds, className } = props
+function Clock({ minutes, seconds, className }: Props) {
   return (
     <Wrapper className={className}>
-      {formatDigits(minutes)}:{formatDigits(seconds)}
+      {formatDoubleDigits(minutes)}:{formatDoubleDigits(seconds)}
     </Wrapper>
   )
 }
