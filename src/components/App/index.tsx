@@ -1,21 +1,26 @@
+import { FormEvent } from 'react'
 import styled from '@emotion/styled'
-import { css } from '@emotion/react'
 
 import Clock from 'components/Clock'
-import TimerForm from 'components/TimerForm'
-import useWorkoutTimer from 'hooks/useWorkoutTimer'
-import { FormEvent, useMemo, useState } from 'react'
+import { Input, TimeInput } from 'components/Inputs'
+import {
+  StartButton,
+  PauseButton,
+  RestartButton,
+  StopButton,
+} from 'components/Buttons'
+import { useWorkoutTimer } from 'hooks/useWorkoutTimer'
 
 const Wrapper = styled.main`
   display: flex;
   justify-content: center;
   height: 100vh;
-  align-items: center;
+  align-items: stretch;
   flex-direction: column;
 `
 
 const Timer = styled.div`
-  margin: 8px 0;
+  margin: 24px 0;
   display: flex;
   flex-direction: column;
 `
@@ -26,71 +31,12 @@ const Text = styled.p`
   text-transform: uppercase;
 `
 
-const Button = styled.button`
-  padding: 8px 16px;
-  cursor: pointer;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-`
-
-const StartButton = styled(Button)`
-  background-color: var(--green-600);
-  color: var(--black-50);
-
-  &:hover {
-    background-color: var(--green-700);
-  }
-
-  &:active {
-    background-color: var(--green-800);
-  }
-`
-
-const PauseButton = styled(Button)`
-  background-color: var(--blue-600);
-  color: var(--black-50);
-
-  &:hover {
-    background-color: var(--blue-700);
-  }
-
-  &:active {
-    background-color: var(--blue-800);
-  }
-`
-
-const RestartButton = styled(Button)`
-  background-color: var(--red-500);
-  color: var(--black-50);
-
-  &:hover {
-    background-color: var(--red-600);
-  }
-
-  &:active {
-    background-color: var(--red-700);
-  }
-`
-
-const StopButton = styled(Button)`
-  background-color: var(--red-500);
-  color: var(--black-50);
-
-  &:hover {
-    background-color: var(--red-600);
-  }
-
-  &:active {
-    background-color: var(--red-700);
-  }
-`
-
 const StyledClock = styled(Clock)`
   margin: 16px 0;
   text-align: center;
   ${(p: { status: string }) => {
     switch (p.status) {
+      case 'rest':
       case 'countdown':
         return `color: var(--red-300);`
     }
@@ -106,52 +52,55 @@ const ButtonContainer = styled.div`
 const Form = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: center;
+  margin: 16px 0;
 `
+
 const Label = styled.label`
-  flex: 1;
+  flex: 1 0 50%;
   text-align: right;
   margin-right: 8px;
 `
+
 const FieldGroup = styled.div`
   margin: 8px 0;
   display: flex;
   align-items: center;
 `
-const Input = styled.input`
-  font-family: 'Roboto Mono', monospace;
-  border: 1px solid var(--black-300);
-  padding: 4px;
-  min-width: 0;
+
+const Field = styled.div`
+  flex: 1 0 50%;
+  display: flex;
+  align-items: center;
+`
+
+const HeaderOne = styled.h1`
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  text-align: center;
+`
+
+const HeaderTwo = styled.h2`
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  text-align: center;
+`
+
+const Footer = styled.footer`
+  font-size: 0.7rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 8px;
+  text-align: right;
+  color: var(--black-400);
 `
 
 function App() {
-  const [countdown, setCountdown] = useState(3)
-  const [rounds, setRounds] = useState(3)
-  const [work, setWork] = useState(30)
-  const [restMinutes, setRestMinutes] = useState(0)
-  const [restSeconds, setRestSeconds] = useState(30)
-
-  const timers = useMemo(() => {
-    const results = [
-      {
-        ms: countdown * 1000,
-        label: 'countdown',
-      },
-    ]
-    for (let round = 1; round <= rounds; round++) {
-      results.push({
-        ms: work * 1000,
-        label: `work (round ${round} of ${rounds})`,
-      })
-      results.push({
-        ms: (restMinutes * 60 + restSeconds) * 1000,
-        label: `rest (round ${round} of ${rounds})`,
-      })
-    }
-
-    return results
-  }, [countdown, rounds, work, restSeconds, restMinutes])
-
   const {
     minutes,
     seconds,
@@ -162,36 +111,42 @@ function App() {
     isRunning,
     hasStarted,
     currentTimer,
-  } = useWorkoutTimer(timers)
+    setCountdown,
+    countdown,
+    rounds,
+    setRounds,
+    work,
+    setWork,
+    rest,
+    setRest,
+  } = useWorkoutTimer()
 
   function handleChange(event: FormEvent<HTMLInputElement>) {
     const { name, value } = event.currentTarget
-
     switch (name) {
-      case 'countdown':
-        setCountdown(Number(value))
-        break
       case 'rounds':
         setRounds(Number(value))
         break
+    }
+  }
+
+  function handleChangeTime({ name, value }: { name: string; value: number }) {
+    switch (name) {
+      case 'countdown':
+        setCountdown(value)
+        break
       case 'work':
-        setWork(Number(value))
+        setWork(value)
         break
-      case 'restMinutes':
-        setRestMinutes(Number(value))
-        break
-      case 'restSeconds':
-        if (value) {
-          setRestSeconds(Number(value))
-        } else {
-          setRestSeconds()
-        }
+      case 'rest':
+        setRest(value)
         break
     }
   }
 
   return (
     <Wrapper>
+      {!isRunning && <HeaderOne>Workout Timer</HeaderOne>}
       <Timer>
         <Text>{currentTimer.label}</Text>
         <StyledClock
@@ -218,64 +173,62 @@ function App() {
           )}
         </ButtonContainer>
       </Timer>
-      <Form>
-        <FieldGroup>
-          <Label>Countdown</Label>
-          <Input
-            type="number"
-            min="0"
-            onChange={handleChange}
-            name="countdown"
-            value={countdown}
-          />
-        </FieldGroup>
 
-        <FieldGroup>
-          <Label>Rounds</Label>
-          <Input
-            type="number"
-            min="0"
-            onChange={handleChange}
-            name="rounds"
-            value={rounds}
-          />
-        </FieldGroup>
+      {!isRunning && (
+        <Form>
+          <HeaderTwo>Settings</HeaderTwo>
+          <FieldGroup>
+            <Label htmlFor='countdown'>Countdown</Label>
+            <Field>
+              <TimeInput
+                onChange={handleChangeTime}
+                id='countdown'
+                name='countdown'
+                value={countdown}
+              />
+            </Field>
+          </FieldGroup>
 
-        <FieldGroup>
-          <Label>Work</Label>
-          <Input
-            type="number"
-            min="0"
-            onChange={handleChange}
-            name="work"
-            value={work}
-          />
-        </FieldGroup>
+          <FieldGroup>
+            <Label htmlFor='rounds'>Rounds</Label>
+            <Field>
+              <Input
+                id='rounds'
+                type='number'
+                min='0'
+                onChange={handleChange}
+                name='rounds'
+                value={rounds}
+              />
+            </Field>
+          </FieldGroup>
 
-        <FieldGroup>
-          <Label>Rest</Label>
-          <Input
-            type="number"
-            min="0"
-            onChange={handleChange}
-            name="restMinutes"
-            value={restMinutes}
-          />
-          :
-          <Input
-            type="number"
-            min="0"
-            onChange={handleChange}
-            name="restSeconds"
-            value={restSeconds}
-            max="59"
-            css={css`
-              width: 2ch;
-            `}
-          />
-        </FieldGroup>
-      </Form>
-      <TimerForm />
+          <FieldGroup>
+            <Label htmlFor='work'>Work</Label>
+            <Field>
+              <TimeInput
+                onChange={handleChangeTime}
+                id='work'
+                name='work'
+                value={work}
+              />
+            </Field>
+          </FieldGroup>
+
+          <FieldGroup>
+            <Label htmlFor='rest'>Rest</Label>
+            <Field>
+              <TimeInput
+                onChange={handleChangeTime}
+                id='rest'
+                name='rest'
+                value={rest}
+              />
+            </Field>
+          </FieldGroup>
+        </Form>
+      )}
+      <Footer>&copy; 2021 Derek Fons</Footer>
     </Wrapper>
   )
 }
