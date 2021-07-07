@@ -9,12 +9,12 @@ import {
   RestartButton,
   StopButton,
 } from 'components/Buttons'
+import Header from 'components/Header'
 import { useWorkoutTimer } from 'hooks/useWorkoutTimer'
 
 const Wrapper = styled.main`
   display: flex;
   justify-content: center;
-  height: 100vh;
   align-items: stretch;
   flex-direction: column;
 `
@@ -146,7 +146,7 @@ function App() {
 
   return (
     <Wrapper>
-      {!isRunning && <HeaderOne>Workout Timer</HeaderOne>}
+      <Header />
       <Timer>
         <Text>{currentTimer.label}</Text>
         <StyledClock
